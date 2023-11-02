@@ -1,10 +1,10 @@
 import { Fragment, useEffect, useState } from "react";
 import { FcAddImage } from "react-icons/fc";
-import "./Home.css";
 import useRandomIdGenerator from "./randomNum";
 import handleThumbnails from "./SetLocalstorage";
-import toast from "react-hot-toast";
 import { useGalleryData } from "./getLocalStorage";
+import deleteHandle from "./deletedHandle";
+import "./Home.css";
 
 const Home = () => {
   // loading state
@@ -33,20 +33,8 @@ const Home = () => {
   };
 
   // deleteHandle
-  const deleteHandle = () => {
-    const deletedGen = [];
-    for (var i = 0; i < gallery?.length; i++) {
-      const { id } = gallery[i];
-      const deletedData = checkedId?.includes(id);
-      if (!deletedData) {
-        deletedGen.push(gallery[i]);
-      }
-    }
-    localStorage.setItem("imageData", JSON.stringify(deletedGen));
-    toast.success("Successfully toasted!");
-    setTimeout(() => {
-      location.reload();
-    }, 1000);
+  const handleDeleted = () => {
+    deleteHandle(gallery, checkedId);
   };
 
   //  image upload  in couldinary
@@ -93,7 +81,7 @@ const Home = () => {
 
         <div>
           {checkedId?.length ? (
-            <button onClick={deleteHandle} className="text-red-600">
+            <button onClick={handleDeleted} className="text-red-600">
               Delete Files
             </button>
           ) : (
