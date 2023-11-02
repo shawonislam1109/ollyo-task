@@ -1,49 +1,26 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { FcAddImage } from "react-icons/fc";
 import "./Home.css";
-import Swal from "sweetalert2";
+import useRandomIdGenerator from "./randomNum";
+import handleThumbnails from "./SetLocalstorage";
+import toast from "react-hot-toast";
+import { useGalleryData } from "./getLocalStorage";
 
 const Home = () => {
+  // loading state
+  const [loading, setLoading] = useState(false);
   // checked for deleted section
   const [checkedId, setCheckedId] = useState([]);
+
   // upload image handle
   const [image, setImage] = useState(null);
 
-  //  get Data form localStorage
-  const getData = localStorage.getItem("imageData");
-  let parseData = JSON.parse(getData);
+  // useHook for gallery data use
+  const gallery = useGalleryData();
 
-  // id Generator
-  const inputString = "983kldssfu03j8lfdjl";
-  function randomNumber(input, length) {
-    let randomNum = "";
-    for (let i = 0; i < length; i++) {
-      const Index = Math.floor(Math.random() * input.length);
-      randomNum += input[Index];
-    }
-    return randomNum;
-  }
-
-  const getRandom = randomNumber(inputString, 15);
-
-  //added photo in gallery
-  const handleThumbnails = (data) => {
-    if (data) {
-      if (parseData) {
-        localStorage.setItem(
-          "imageData",
-          JSON.stringify([...parseData, { id: getRandom, image: data }])
-        );
-      } else {
-        localStorage.setItem(
-          "imageData",
-          JSON.stringify([{ id: getRandom, image: data }])
-        );
-      }
-      Swal.fire("Added success!", "You clicked the button!");
-      location.reload();
-    }
-  };
+  // use hook for random id generator
+  const getRandomId = useRandomIdGenerator("983kldssfu03j8lfdjl", 15);
+  const randomId = getRandomId();
 
   // handle check file
   const handleChecked = (id) => {
@@ -58,21 +35,21 @@ const Home = () => {
   // deleteHandle
   const deleteHandle = () => {
     const deletedGen = [];
-    for (var i = 0; i < parseData?.length; i++) {
-      const { id } = parseData[i];
+    for (var i = 0; i < gallery?.length; i++) {
+      const { id } = gallery[i];
       const deletedData = checkedId?.includes(id);
       if (!deletedData) {
-        deletedGen.push(parseData[i]);
+        deletedGen.push(gallery[i]);
       }
     }
     localStorage.setItem("imageData", JSON.stringify(deletedGen));
-    Swal.fire("Deleted success!", "You clicked the button!");
-    location.reload();
+    toast.success("Successfully toasted!");
+    setTimeout(() => {
+      location.reload();
+    }, 1000);
   };
 
-  console.log(parseData);
-
-  //   image upload  in couldinary
+  //  image upload  in couldinary
   useEffect(() => {
     const data = new FormData();
     data.append("file", image?.target?.files[0]);
@@ -82,10 +59,11 @@ const Home = () => {
       method: "post",
       body: data,
     })
-      .then((res) => res.json())
+      .then((res) => res.json(), setLoading(true))
       .then((data) => {
+        setLoading(false);
         if (data.url) {
-          handleThumbnails(data.url);
+          return handleThumbnails(data.url, gallery, randomId);
         }
       })
       .catch((err) => {
@@ -96,17 +74,23 @@ const Home = () => {
   return (
     <div className=" mt-4 ">
       <div className="border-bottom pb-2 flex justify-between items-center px-5">
-        <div>
-          <input
-            type="checkbox"
-            id="vehicle1"
-            name="vehicle1"
-            checked="checked"
-            value="Bike"
-            className="mr-2"
-          />
-          <label htmlFor="vehicle1">{checkedId?.length} Files Selects</label>
-        </div>
+        {checkedId?.length ? (
+          <div>
+            <input
+              type="checkbox"
+              id="vehicle1"
+              name="vehicle1"
+              readOnly
+              checked="checked"
+              value="Bike"
+              className="mr-2"
+            />
+            <label htmlFor="vehicle1">{checkedId?.length} Files Selects</label>
+          </div>
+        ) : (
+          "Gallery"
+        )}
+
         <div>
           {checkedId?.length ? (
             <button onClick={deleteHandle} className="text-red-600">
@@ -118,12 +102,12 @@ const Home = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-6 gap-4 p-5">
-        {parseData?.map((data, index) => {
+      <div className="grid grid-cols-6 gap-4 p-5 relative">
+        {gallery?.map((data, index) => {
           const checked = checkedId?.includes(data.id);
           if (index == 0) {
             return (
-              <>
+              <Fragment key={data.id}>
                 <div
                   key={data.id}
                   className="row-span-2 col-span-2 border group shadow-md rounded-sm relative "
@@ -148,7 +132,7 @@ const Home = () => {
                     }
                   />
                 </div>
-              </>
+              </Fragment>
             );
           }
           return (
@@ -177,17 +161,23 @@ const Home = () => {
         })}
 
         <div className="border flex justify-center shadow-md items-center file">
-          <label htmlFor="dropzone-file" className="cursor-pointer">
-            <div className="">
-              <FcAddImage className="w-16 h-16" />
+          {loading ? (
+            <div className="text-center ">
+              <span className="loading loading-dots loading-lg text-center "></span>
             </div>
-            <input
-              onChange={(e) => setImage(e)}
-              id="dropzone-file"
-              type="file"
-              className="hidden"
-            />
-          </label>
+          ) : (
+            <label htmlFor="dropzone-file" className="cursor-pointer">
+              <div className="">
+                <FcAddImage className="w-16 h-16" />
+              </div>
+              <input
+                onChange={(e) => setImage(e)}
+                id="dropzone-file"
+                type="file"
+                className="hidden"
+              />
+            </label>
+          )}
         </div>
       </div>
     </div>
