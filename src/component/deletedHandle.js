@@ -11,9 +11,6 @@ const deleteHandle = (gallery, checkedId) => {
   }
   localStorage.setItem("imageData", JSON.stringify(deletedGen));
   toast.success("Successfully Deleted!");
-  setTimeout(() => {
-    location.reload();
-  }, 1000);
 };
 
 export default deleteHandle;

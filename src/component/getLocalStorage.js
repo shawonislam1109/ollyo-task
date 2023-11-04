@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
 
-export function useGalleryData() {
+export function useGalleryData(loading) {
   const [gallery, setGallery] = useState([]);
+
   const getData = localStorage.getItem("imageData");
-
   useEffect(() => {
-    const parsedData = JSON.parse(getData);
-    setGallery(parsedData);
-  }, [getData]);
+    if (getData) {
+      const parsedData = JSON.parse(getData);
+      setGallery(parsedData);
+    }
+  }, [getData, loading]);
 
-  return gallery;
+  return { gallery, setGallery };
 }
