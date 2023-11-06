@@ -1,10 +1,10 @@
 import { createBrowserRouter } from "react-router-dom";
-import Home from "../component/Home";
+import MainSection from "../component/MainSection";
 
 const route = createBrowserRouter([
   {
     path: "/",
-    element: <Home />,
+    element: <MainSection />,
   },
 ]);
 
